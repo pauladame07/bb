@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Secret Game</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#ffe4ec;--bg2:#ffd0df;--ink:#4a1230;--soft:#8a4560;--rose:#d6336c;--card:#fff8fa;--line:#f3b4c8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c0b21;--bg2:#2c1032;--ink:#ffe9f0;--soft:#d9a3bb;--rose:#ff6b9a;--card:#32173a;--line:#5a2a63}}
+:root[data-theme="dark"]{--bg:#1c0b21;--bg2:#2c1032;--ink:#ffe9f0;--soft:#d9a3bb;--rose:#ff6b9a;--card:#32173a;--line:#5a2a63}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:linear-gradient(var(--bg),var(--bg2));color:var(--ink);font-family:Quicksand,system-ui,sans-serif;line-height:1.7;overflow-x:hidden}
+section{max-width:640px;margin:0 auto;padding:72px 22px;text-align:center}
+h1,h2{font-family:"Pinyon Script",cursive,serif;font-weight:400;margin:0}
+h1{font-size:clamp(3rem,13vw,5.5rem);line-height:1.1;color:var(--rose)}
+h2{font-size:2.4rem;margin-bottom:18px;color:var(--rose)}
+.hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:24px;padding-bottom:24px}
+#heart{width:min(86vw,380px);height:min(86vw,380px);touch-action:none;cursor:pointer}
+.sub{color:var(--soft);margin:6px 0 20px}
+button{font:inherit;font-weight:600;border:0;border-radius:999px;padding:12px 26px;background:var(--rose);color:#fff;cursor:pointer;transition:transform .15s}
+button:active{transform:scale(.94)}
+button:focus-visible,.card:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+button.ghost{background:transparent;color:var(--rose);border:2px solid var(--rose)}
+.hint{font-size:.85rem;color:var(--soft);margin-top:10px;min-height:1.4em}
+.count{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.count div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 6px;min-width:76px}
+.count b{display:block;font-size:1.9rem;color:var(--rose)}
+.letter{background:var(--card);border:1px solid var(--line);border-radius:6px 28px 6px 28px;padding:28px 24px;text-align:left;min-height:260px;white-space:pre-wrap;font-size:1.05rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.card{perspective:700px;height:150px;cursor:pointer;border-radius:20px;position:relative}
+.card i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;border-radius:20px;font-style:normal;backface-visibility:hidden;transition:transform .6s}
+.card .f{background:var(--card);border:1px solid var(--line);font-family:"Pinyon Script",cursive;font-size:1.9rem;color:var(--rose)}
+.card .b{background:var(--rose);color:#fff;transform:rotateY(180deg);font-size:.95rem}
+.card.on .f{transform:rotateY(-180deg)}.card.on .b{transform:rotateY(0)}
+#ask{position:relative;min-height:150px;margin-top:18px}
+.big{font-size:1.25rem;margin-bottom:16px}
+#no{transition:left .25s,top .25s}
+.fx{position:fixed;pointer-events:none;z-index:9;font-size:22px;animation:up 1.6s ease-out forwards;color:var(--rose)}
+@keyframes up{to{transform:translate(var(--dx),-180px) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.fx{animation-duration:.01s}html{scroll-behavior:auto}.card i{transition:none}}
+body.lock{overflow:hidden;height:100%}
+#game{position:fixed;inset:0;z-index:20;background:#0d0820;display:flex;align-items:center;justify-content:center;transition:opacity .8s}
+#gc{image-rendering:pixelated;width:min(100vw,133.33vh);aspect-ratio:4/3;touch-action:none;cursor:pointer}
+#go{display:none;position:absolute;bottom:9%;font-family:"Press Start 2P",monospace;font-size:clamp(12px,3vw,20px);padding:16px 24px;border-radius:0;background:#ff6b9a;color:#1c0b21;box-shadow:0 6px 0 #a61e55;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{transform:translateY(3px)}}
+#mute{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:30;padding:8px 14px;background:var(--card)}
+</style>
+</head>
+<body class="lock">
+<div id="game"><canvas id="gc" width="160" height="120" aria-label="A small pixel game. Move to catch 8 hearts."></canvas><button id="go">PLAY ♥</button></div>
+<button id="mute" class="ghost">♪ on</button>
+<div id="site" hidden>
+<section class="hero">
+  <canvas id="heart" aria-label="A heart made of tiny lights. Touch it to scatter them."></canvas>
+  <h1 id="nm"></h1>
+  <p class="sub" id="tag"></p>
+  <p class="sub">scroll down ♥</p>
+</section>
+
+<section>
+  <h2>Together for</h2>
+  <p class="sub" id="since"></p>
+  <div class="count" id="count"></div>
+</section>
+
+<section>
+  <h2>A little letter</h2>
+  <div class="letter" id="letter" aria-live="polite"></div>
+</section>
+
+<section>
+  <h2>Why I love you</h2>
+  <p class="sub">Tap a card to open it.</p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section>
+  <h2>One question</h2>
+  <p class="big" id="q"></p>
+  <div id="ask"><button id="yes">Yes, always</button> <button class="ghost" id="no">No</button></div>
+  <p class="big" id="win" hidden></p>
+</section>
+
+</div>
+
+<script>
+// ===== EDIT THESE =====
+const C = {
+  name: "Baby ko",
+  tagline: "Made just for you, with all my heart.",
+  since: "2026-07-31",            // the day you got together (YYYY-MM-DD)
+  musicSrc: "song.mp3",           // your song file, saved in the SAME folder as this page
+  letter: "Hi baby,\n\nI made this little corner of the internet, open 24/7, just for you. Come visit whenever you want to smile.\n\nYou make my days happy and peaceful. Having you by my side since we met has been a rollercoaster. We’ve had our ups and downs, but we kept fighting for it, and it gets stronger every day.\n\nI’m sorry for the lack of improvement and initiative in our relationship. I really am trying everything. I’m not going to rant about things. I’m here to make you happy and make you feel loved and cared for.\n\nDistance may be our biggest obstacle, but I’m always here for you.\n\nI love you so much, baby ko. Always and forever.",
+  reasons: [
+    ["Your smile","It makes my whole day feel lighter."],
+    ["Your laugh","My favorite sound in the world."],
+    ["Your kindness","You care for people so gently."],
+    ["Your love","The safest place I know."],
+    ["Our silly moments","Nobody makes happy like you."],
+    ["Just you","Exactly as you are."]
+  ],
+  question: "Will you keep being my favorite person?",
+  yesText: "I love you! Today, tomorrow, and always baby ko. ♥"
+};
+// ======================
+const $ = id => document.getElementById(id);
+$("nm").textContent = C.name; $("tag").textContent = C.tagline; $("q").textContent = C.question;
+
+// ---- Pixel music (30% volume) ----
+let ac,master,step=0,nextT=0,muted=false;
+const hz=n=>440*Math.pow(2,(n-69)/12);
+function tone(t,n,d,type,v){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=hz(n);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05);}
+const CH=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]],AR=[0,1,2,1,2,1,0,1];
+function sched(){while(nextT<ac.currentTime+.25){const c=CH[Math.floor(step/8)%4],i=step%8;
+tone(nextT,c[AR[i]]+12,.18,"square",.09);
+if(i%4==0)tone(nextT,c[0]-24,.38,"triangle",.3);
+if(i==0)tone(nextT,c[2]+24,.7,"square",.04);
+if(i==4)tone(nextT,c[1]+24,.35,"square",.04);
+nextT+=.2;step++;}}
+function startMusic(){if(ac){ac.resume();return;}ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.3;master.connect(ac.destination);nextT=ac.currentTime+.1;setInterval(sched,60);}
+function sfx(n){if(ac&&!muted)tone(ac.currentTime,n,.15,"square",.18);}
+$("mute").onclick=()=>{muted=!muted;if(master)master.gain.value=muted?0:.3;$("mute").textContent=muted?"♪ off":"♪ on";};
+
+// ---- Pixel mini-game ----
+const gc=$("gc"),g=gc.getContext("2d");g.imageSmoothingEnabled=false;
+let st=0,px=80,tx=80,score=0,hs=[],T=0,wt=0,keys={},last=0,raf;
+const HEART=[".##.##.","#######","#######",".#####.","..###..","...#..."];
+function heart(x,y,c){g.fillStyle=c;HEART.forEach((r,j)=>{for(let i=0;i<7;i++)if(r[i]=="#")g.fillRect(x+i,y+j,1,1);});}
+function fig(x,y,hair,shirt,bow){const X=Math.round(x);g.fillStyle=hair;g.fillRect(X-4,y,8,4);g.fillStyle="#ffd6b0";g.fillRect(X-3,y+3,6,5);g.fillStyle=hair;g.fillRect(X-4,y+3,1,bow?6:2);g.fillRect(X+3,y+3,1,bow?6:2);g.fillStyle=shirt;g.fillRect(X-4,y+8,8,7);g.fillStyle="#3b2a6b";g.fillRect(X-3,y+15,3,4);g.fillRect(X,y+15,3,4);if(bow){g.fillStyle="#ff6b9a";g.fillRect(X+1,y,3,2);}}
+function txt(s,x,y,c){g.font='8px "Press Start 2P",monospace';g.textAlign="center";g.fillStyle=c;g.fillText(s,x,y);}
+function bg(){g.fillStyle="#140a2e";g.fillRect(0,0,160,120);g.fillStyle="#fff";for(let i=0;i<22;i++){if((Math.floor(T/400)+i)%3)g.fillRect((i*53)%160,(i*37)%80,1,1);}g.fillStyle="#2a1650";g.fillRect(0,100,160,20);g.fillStyle="#ff6b9a";g.fillRect(0,100,160,1);}
+function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T=now;bg();
+if(st==0){txt("A SECRET",80,38,"#ff6b9a");txt("GAME",80,52,"#ff6b9a");heart(76,60,"#ff6b9a");if(Math.floor(T/500)%2)txt("PRESS START",80,92,"#fff");}
+else if(st==1){
+ if(keys.ArrowLeft||keys.a)tx=px-40;if(keys.ArrowRight||keys.d)tx=px+40;
+ px+=(Math.max(8,Math.min(152,tx))-px)*Math.min(1,dt*10);
+ if(Math.random()<dt*1.6)hs.push({x:10+Math.random()*140,y:-8});
+ hs.forEach(h=>{h.y+=dt*(34+score*3);heart(Math.round(h.x)-3,Math.round(h.y),"#ff6b9a");});
+ hs=hs.filter(h=>{if(h.y>78&&h.y<96&&Math.abs(h.x-px)<9){score++;sfx(84);return false;}return h.y<110;});
+ fig(px,81,"#2b1b17","#5aa0ff");
+ txt("HEARTS "+score+"/8",50,14,"#fff");
+ if(score>=8){st=2;wt=T;}
+}else{
+ fig(60,81,"#2b1b17","#5aa0ff");fig(100,81,"#6b3a2a","#ff9ac0",true);
+ heart(77,60+Math.round(Math.sin(T/250)*3),"#ff6b9a");
+ txt("LEVEL CLEAR!",80,26,"#fff");txt("SOMETHING FOR YOU",80,40,"#ffd6e3");
+ if(T-wt>1200)$("go").style.display="block";}
+raf=requestAnimationFrame(frame);}
+function begin(){if(st==0){startMusic();$("mute").style.display="block";st=1;}}
+addEventListener("keydown",e=>{keys[e.key]=true;if(st==0&&(e.key=="Enter"||e.key==" "))begin();});
+addEventListener("keyup",e=>{keys[e.key]=false;});
+function pt(e){const r=gc.getBoundingClientRect();tx=(e.clientX-r.left)/r.width*160;}
+gc.addEventListener("pointerdown",e=>{begin();pt(e);});gc.addEventListener("pointermove",pt);
+$("go").onclick=()=>{$("game").style.opacity=0;setTimeout(()=>{cancelAnimationFrame(raf);$("game").remove();$("site").hidden=false;document.body.classList.remove("lock");scrollTo(0,0);dispatchEvent(new Event("resize"));},800);};
+requestAnimationFrame(frame);
+
+// Days together
+(function(){
+  const s = new Date(C.since+"T00:00:00");
+  $("since").textContent = "since " + s.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+  function tick(){
+    const d = Math.max(0, Date.now()-s.getTime());
+    const days = Math.floor(d/864e5), h = Math.floor(d/36e5)%24, m = Math.floor(d/6e4)%60;
+    $("count").innerHTML = [[days,"days"],[h,"hours"],[m,"minutes"]].map(x=>"<div><b>"+x[0]+"</b>"+x[1]+"</div>").join("");
+  }
+  tick(); setInterval(tick, 30000);
+})();
+
+// Typewriter letter
+(function(){
+  const el = $("letter"); let started = false;
+  new IntersectionObserver((es,o)=>{ if(es[0].isIntersecting && !started){ started=true; o.disconnect(); let i=0;
+    const t=setInterval(()=>{ el.textContent = C.letter.slice(0,++i); if(i>=C.letter.length) clearInterval(t); }, 38); } },{threshold:.4}).observe(el);
+})();
+
+// Reason cards
+$("cards").innerHTML = C.reasons.map(r=>'<div class="card" tabindex="0" role="button" aria-pressed="false"><i class="f">'+r[0]+'</i><i class="b">'+r[1]+'</i></div>').join("");
+document.querySelectorAll(".card").forEach(c=>{
+  const flip=()=>{ c.classList.toggle("on"); c.setAttribute("aria-pressed",c.classList.contains("on")); };
+  c.onclick=flip; c.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); flip(); } };
+});
+
+// Floating hearts
+function burst(x,y,n){
+  for(let i=0;i<n;i++){
+    const s=document.createElement("span"); s.className="fx"; s.textContent=["♥","❤","💗"][i%3];
+    s.style.left=x+"px"; s.style.top=y+"px";
+    s.style.setProperty("--dx",(Math.random()*160-80)+"px"); s.style.setProperty("--r",(Math.random()*80-40)+"deg");
+    s.style.fontSize=(14+Math.random()*20)+"px";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),1700);
+  }
+}
+document.addEventListener("pointerdown",e=>burst(e.clientX,e.clientY,4));
+
+// Question
+const no=$("no");
+function dodge(){
+  const box=$("ask").getBoundingClientRect();
+  no.style.position="absolute";
+  no.style.left=Math.random()*Math.max(10,box.width-90)+"px";
+  no.style.top=Math.random()*90+"px";
+}
+no.addEventListener("pointerenter",dodge); no.addEventListener("pointerdown",e=>{e.stopPropagation();dodge();});
+no.addEventListener("click",e=>{e.preventDefault();dodge();});
+$("yes").onclick=e=>{
+  $("ask").hidden=true; $("win").hidden=false; $("win").textContent=C.yesText;
+  const r=e.target.getBoundingClientRect();
+  for(let k=0;k<6;k++) setTimeout(()=>burst(r.left+r.width/2,r.top,14),k*180);
+};
+
+// Particle heart
+(function(){
+  const cv=$("heart"),ctx=cv.getContext("2d"),dpr=Math.min(2,window.devicePixelRatio||1);
+  let W,P=[],mx=-999,my=-999;
+  const css=()=>getComputedStyle(document.documentElement).getPropertyValue("--rose").trim()||"#d6336c";
+  function size(){ W=cv.clientWidth; cv.width=cv.height=W*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); build(); }
+  function build(){
+    P=[]; const N=520;
+    for(let i=0;i<N;i++){
+      const t=Math.random()*Math.PI*2, f=Math.sqrt(Math.random())*0.96+0.04;
+      const x=16*Math.pow(Math.sin(t),3)*f, y=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*f;
+      const hx=W/2+x*W/38, hy=W/2.15-y*W/38;
+      P.push({x:Math.random()*W,y:Math.random()*W,hx,hy,vx:0,vy:0,r:1+Math.random()*1.8,ph:Math.random()*6});
+    }
+  }
+  function move(e){ const b=cv.getBoundingClientRect(); mx=e.clientX-b.left; my=e.clientY-b.top; }
+  cv.addEventListener("pointermove",move); cv.addEventListener("pointerdown",move);
+  cv.addEventListener("pointerleave",()=>{mx=my=-999});
+  cv.addEventListener("pointerup",()=>{setTimeout(()=>{mx=my=-999},250)});
+  const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+  function frame(t){
+    ctx.clearRect(0,0,W,W); ctx.fillStyle=css();
+    const beat=1+0.03*Math.sin(t/260)*(still?0:1);
+    for(const p of P){
+      const tx=W/2+(p.hx-W/2)*beat, ty=W/2.15+(p.hy-W/2.15)*beat;
+      p.vx+=(tx-p.x)*0.035; p.vy+=(ty-p.y)*0.035;
+      const dx=p.x-mx, dy=p.y-my, d=Math.hypot(dx,dy)||1;
+      if(d<70){ const k=(70-d)/70*3; p.vx+=dx/d*k; p.vy+=dy/d*k; }
+      p.vx*=0.88; p.vy*=0.88; p.x+=p.vx; p.y+=p.vy;
+      ctx.globalAlpha=0.55+0.45*Math.sin(t/500+p.ph);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  size(); addEventListener("resize",size); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
