@@ -93,7 +93,7 @@ const C = {
   tagline: "Made just for you, with all my heart.",
   since: "2026-07-31",            // the day you got together (YYYY-MM-DD)
   musicSrc: "song.mp3",           // your song file, saved in the SAME folder as this page
-  letter: "Hi baby,\n\nI made this little corner of the internet, open 24/7, just for you. Come visit whenever you want to smile.\n\nYou make my days happy and peaceful. Having you by my side since we met has been a rollercoaster. We’ve had our ups and downs, but we kept fighting for it, and it gets stronger every day.\n\nI’m sorry for the lack of improvement and initiative in our relationship. I really am trying everything. I’m not going to rant about things. I’m here to make you happy and make you feel loved and cared for.\n\nDistance may be our biggest obstacle, but I’m always here for you.\n\nI love you so much, baby ko. Always and forever.",
+    letter: "Hi baby,\n\nI made this little corner of the internet, open 24/7, just for you. Come visit whenever you want to smile.\n\nHaving you by my side since we met has been a rollercoaster. We’ve had our ups and downs, but we kept fighting for it, and it gets stronger every day. Still, it’s mostly been happy and peaceful days, the best days of my life. Thank you for being here with me and sticking by my side, always.\n\nI’m sorry for the lack of improvement and initiative in our relationship. I really am trying everything. I’m not going to rant about things. I’m here to make you happy, give you peace and unconditional love, and always take care of you. Distance may be our biggest obstacle, but I’m always here for you.\n\nLoving you has been the best decision I’ve made in a very long time. My baby, I love you so much! Always and forever, baby ko.",
   reasons: [
     ["Your smile","It makes my whole day feel lighter."],
     ["Your laugh","My favorite sound in the world."],
@@ -133,7 +133,7 @@ function fig(x,y,hair,shirt,bow){const X=Math.round(x);g.fillStyle=hair;g.fillRe
 function txt(s,x,y,c){g.font='8px "Press Start 2P",monospace';g.textAlign="center";g.fillStyle=c;g.fillText(s,x,y);}
 function bg(){g.fillStyle="#140a2e";g.fillRect(0,0,160,120);g.fillStyle="#fff";for(let i=0;i<22;i++){if((Math.floor(T/400)+i)%3)g.fillRect((i*53)%160,(i*37)%80,1,1);}g.fillStyle="#2a1650";g.fillRect(0,100,160,20);g.fillStyle="#ff6b9a";g.fillRect(0,100,160,1);}
 function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T=now;bg();
-if(st==0){txt("A SECRET",80,38,"#ff6b9a");txt("GAME",80,52,"#ff6b9a");heart(76,60,"#ff6b9a");if(Math.floor(T/500)%2)txt("PRESS START",80,92,"#fff");}
+if(st==0){txt("CATCH MY",80,38,"#ff6b9a");txt("HEART",80,52,"#ff6b9a");heart(76,60,"#ff6b9a");if(Math.floor(T/500)%2)txt("PRESS START",80,92,"#fff");}
 else if(st==1){
  if(keys.ArrowLeft||keys.a)tx=px-40;if(keys.ArrowRight||keys.d)tx=px+40;
  px+=(Math.max(8,Math.min(152,tx))-px)*Math.min(1,dt*10);
